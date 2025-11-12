@@ -69,8 +69,9 @@ You will need to run three separate processes in different terminals:
 2.  **Start the Celery worker:**
     In the project root directory, run:
     ```bash
-    celery -A cv_screening worker -l info
+    celery -A cv_screening worker -l info --concurrency=4
     ```
+    This command starts a Celery worker with 4 concurrent processes, allowing it to handle multiple evaluation tasks in parallel. Adjust the concurrency level based on your machine's resources.
 
 3.  **Start the Django development server:**
     ```bash
