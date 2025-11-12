@@ -38,10 +38,59 @@ class UploadedFileSerializer(serializers.ModelSerializer):
             
         return value
 
-class EvaluationJobSerializer(serializers.ModelSerializer):
+class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationJob
-        fields = '__all__'
+        fields = [
+            'cv_match_rate', 
+            'cv_feedback', 
+            'project_score', 
+            'project_feedback', 
+            'overall_summary'
+        ]
+
+class EvaluationJobSerializer(serializers.ModelSerializer):
+    result = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EvaluationJob
+        fields = [
+            'id', 
+            'status', 
+            'result', 
+            'cv_match_rate', 
+            'cv_feedback', 
+            'project_score', 
+            'project_feedback', 
+            'overall_summary'
+        ]
+        read_only_fields = ['id', 'status', 'result']
+
+    def get_result(self, obj):
+        if obj.status == 'completed':
+            return ResultSerializer(obj).data
+        return None
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        # Remove individual result fields from the top-level representation
+        # as they are now nested under 'result'.
+        for field in ResultSerializer.Meta.fields:
+            representation.pop(field, None)
+
+        if instance.status in ['queued', 'processing']:
+            # For queued or processing jobs, only show id and status
+            return {
+                'id': representation['id'],
+                'status': representation['status']
+            }
+        
+        if instance.status != 'completed':
+            representation.pop('result', None)
+
+        return representation
+
 
 class EvaluationRequestSerializer(serializers.Serializer):
     job_title = serializers.CharField(max_length=255)
