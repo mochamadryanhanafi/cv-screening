@@ -2,9 +2,9 @@ import os
 from django.core.management.base import BaseCommand
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from dotenv import load_dotenv
+from core.infra.vector_store.chroma import ChromaVectorStore # Import the updated ChromaVectorStore
 
 load_dotenv()
 
@@ -28,15 +28,10 @@ class Command(BaseCommand):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         texts = text_splitter.split_documents(documents)
 
-        # Get embeddings
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-
-        # Create ChromaDB client and collection
-        vector_store = Chroma.from_documents(
-            texts,
-            embeddings,
-            persist_directory="./chroma_db"
-        )
-        vector_store.persist()
+        # Initialize the ChromaVectorStore (which uses HttpClient)
+        chroma_vector_store = ChromaVectorStore()
+        
+        # Add documents to the vector store
+        chroma_vector_store.vector_store.add_documents(texts)
 
         self.stdout.write(self.style.SUCCESS('Successfully ingested documents.'))
