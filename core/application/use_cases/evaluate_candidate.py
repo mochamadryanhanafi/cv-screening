@@ -48,3 +48,4 @@ class EvaluateCandidateUseCase:
             job.status = 'failed'
             job.overall_summary = f"An error occurred: {str(e)}"
             self.evaluation_repository.update(job)
+
