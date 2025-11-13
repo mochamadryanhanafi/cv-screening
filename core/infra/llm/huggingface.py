@@ -1,11 +1,11 @@
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_community.llms import HuggingFaceHub
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from core.application.interfaces import ILLMService
 
-class GoogleLLMService(ILLMService):
-    def __init__(self, model_name="gemini-pro"):
-        self.llm = GoogleGenerativeAI(model=model_name)
+class HuggingFaceLLMService(ILLMService):
+    def __init__(self, repo_id="google/flan-t5-small"):
+        self.llm = HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.5, "max_length": 512})
 
     def evaluate_cv(self, cv_content: str, retriever):
         prompt = PromptTemplate(

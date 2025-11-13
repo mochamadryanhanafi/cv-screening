@@ -4,18 +4,7 @@ from dotenv import load_dotenv
 from core.application.use_cases.evaluate_candidate import EvaluateCandidateUseCase
 from core.infra.persistence.django_repository import DjangoEvaluationRepository
 from core.infra.file_parser import PdfParser
-from core.infra.llm.google import GoogleLLMService
-from core.infra.vector_store.chroma import ChromaVectorStore
-
-load_dotenv()
-
-from celery import shared_task
-from dotenv import load_dotenv
-
-from core.application.use_cases.evaluate_candidate import EvaluateCandidateUseCase
-from core.infra.persistence.django_repository import DjangoEvaluationRepository
-from core.infra.file_parser import PdfParser
-from core.infra.llm.google import GoogleLLMService
+from core.infra.llm.huggingface import HuggingFaceLLMService
 from core.infra.vector_store.chroma import ChromaVectorStore
 
 load_dotenv()
@@ -29,7 +18,7 @@ def evaluate_documents(job_id):
     # 1. Initialize concrete implementations
     evaluation_repo = DjangoEvaluationRepository()
     pdf_parser = PdfParser()
-    llm_service = GoogleLLMService()
+    llm_service = HuggingFaceLLMService()
     vector_store = ChromaVectorStore()
 
     # 2. Initialize the use case with concrete dependencies

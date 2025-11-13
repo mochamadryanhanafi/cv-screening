@@ -11,7 +11,7 @@ class ChromaVectorStore(IVectorStore):
         # Setup ChromaDB client for client-server mode
         chroma_client = chromadb.HttpClient(
             host=os.getenv("CHROMA_HOST", "localhost"),
-            port=os.getenv("CHROMA_PORT", "8000")
+            port=os.getenv("CHROMA_PORT", "8003")
         )
         
         self.vector_store = Chroma(
