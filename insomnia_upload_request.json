@@ -1,0 +1,38 @@
+{
+  "_type": "request",
+  "parentId": "wrk_12345",
+  "modified": 1678886400001,
+  "created": 1678886400001,
+  "url": "http://localhost:8000/api/upload/",
+  "name": "Upload Document",
+  "description": "Uploads a PDF document (CV or Project Report)",
+  "method": "POST",
+  "body": {
+    "mimeType": "multipart/form-data",
+    "params": [
+      {
+        "name": "file",
+        "value": "",
+        "fileName": "/path/to/your/document.pdf",
+        "type": "file"
+      }
+    ]
+  },
+  "parameters": [],
+  "headers": [
+    {
+      "id": "pair_1",
+      "name": "Authorization",
+      "value": "Bearer {{ _.jwt_token }}"
+    }
+  ],
+  "authentication": {},
+  "metaSortKey": -1678886400001,
+  "isPrivate": false,
+  "settingStoreCookies": true,
+  "settingSendCookies": true,
+  "settingDisableRenderRequestBody": false,
+  "settingEncodeUrl": true,
+  "settingRebuildPath": true,
+  "settingFollowRedirects": "global"
+}

@@ -1,0 +1,31 @@
+{
+  "_type": "request",
+  "parentId": "wrk_12345",
+  "modified": 1678886400000,
+  "created": 1678886400000,
+  "url": "http://localhost:8000/api/token/",
+  "name": "Obtain JWT Token",
+  "description": "Obtain JWT access and refresh tokens",
+  "method": "POST",
+  "body": {
+    "mimeType": "application/json",
+    "text": "{ \\"username\\": \\"testuser\\", \\"password\\": \\"testpassword\\" }"
+  },
+  "parameters": [],
+  "headers": [
+    {
+      "id": "pair_1",
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "authentication": {},
+  "metaSortKey": -1678886400000,
+  "isPrivate": false,
+  "settingStoreCookies": true,
+  "settingSendCookies": true,
+  "settingDisableRenderRequestBody": false,
+  "settingEncodeUrl": true,
+  "settingRebuildPath": true,
+  "settingFollowRedirects": "global"
+}

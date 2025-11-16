@@ -1,0 +1,36 @@
+{
+  "_type": "request",
+  "parentId": "wrk_12345",
+  "modified": 1678886400002,
+  "created": 1678886400002,
+  "url": "http://localhost:8000/api/evaluate/",
+  "name": "Evaluate Candidate",
+  "description": "Triggers an asynchronous AI evaluation pipeline",
+  "method": "POST",
+  "body": {
+    "mimeType": "application/json",
+    "text": "{ \\"job_title\\": \\"Backend Developer\\", \\"cv_id\\": \\"{{ _.cv_id }}\\", \\"project_report_id\\": \\"{{ _.project_report_id }}\\" }"
+  },
+  "parameters": [],
+  "headers": [
+    {
+      "id": "pair_1",
+      "name": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "id": "pair_2",
+      "name": "Authorization",
+      "value": "Bearer {{ _.jwt_token }}"
+    }
+  ],
+  "authentication": {},
+  "metaSortKey": -1678886400002,
+  "isPrivate": false,
+  "settingStoreCookies": true,
+  "settingSendCookies": true,
+  "settingDisableRenderRequestBody": false,
+  "settingEncodeUrl": true,
+  "settingRebuildPath": true,
+  "settingFollowRedirects": "global"
+}

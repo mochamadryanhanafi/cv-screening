@@ -1,0 +1,27 @@
+{
+  "_type": "request",
+  "parentId": "wrk_12345",
+  "modified": 1678886400003,
+  "created": 1678886400003,
+  "url": "http://localhost:8000/api/result/{{ _.job_id }}/",
+  "name": "Get Evaluation Result",
+  "description": "Retrieves the status and result of an evaluation job",
+  "method": "GET",
+  "parameters": [],
+  "headers": [
+    {
+      "id": "pair_1",
+      "name": "Authorization",
+      "value": "Bearer {{ _.jwt_token }}"
+    }
+  ],
+  "authentication": {},
+  "metaSortKey": -1678886400003,
+  "isPrivate": false,
+  "settingStoreCookies": true,
+  "settingSendCookies": true,
+  "settingDisableRenderRequestBody": false,
+  "settingEncodeUrl": true,
+  "settingRebuildPath": true,
+  "settingFollowRedirects": "global"
+}

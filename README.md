@@ -33,114 +33,178 @@ This project is a Django-based backend service that automates the initial screen
     source venv/bin/activate
     ```
 
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+# CV Screening — AI-powered CV & Project Report Evaluation
 
-4.  **Set up environment variables:**
-    Create a `.env` file in the project root and add your Google API key:
-    ```
-    GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
-    ```
-    **Note:** You need to have a valid Google API key with the Gemini API enabled.
+CV Screening adalah backend service berbasis Django yang otomatis melakukan screening awal terhadap pelamar kerja. Sistem ini menggunakan pendekatan RAG (Retrieval-Augmented Generation) yang mengombinasikan vector search (ChromaDB) dengan LLM untuk memberikan penilaian terstruktur terhadap CV dan laporan proyek.
 
-5.  **Apply database migrations:**
-    ```bash
-    python manage.py migrate
-    ```
+Ringkasan singkat:
+- Bahasa: Python 3.8+
+- Framework: Django + Django REST Framework
+- Asynchronous: Celery + Redis
+- Vector store: ChromaDB
+- LLM orchestration: LangChain (dengan dukungan model eksternal seperti Google Gemini / HuggingFace)
 
-6.  **Ingest documents into the vector store:**
-    This command will read the files in the `documents` directory and ingest them into the ChromaDB vector store.
-    ```bash
-    python manage.py ingest
-    ```
+## Fitur Utama
 
-## Running the Application
+- Endpoint REST untuk upload file, trigger evaluasi, dan mengambil hasil
+- Evaluasi asinkron via Celery untuk menghindari blocking API
+- RAG pipeline: referensi dokumen diindeks ke ChromaDB untuk retrieval konteks
+- LangChain untuk menyusun proses evaluasi berlapis (CV -> Project -> Summary)
+- Keamanan: autentikasi JWT dan rate limiting untuk proteksi sumber daya
 
-You will need to run three separate processes in different terminals:
+## Struktur Proyek
 
-1.  **Start the Redis server:**
-    Make sure you have Redis installed and running on your machine.
-    ```bash
-    redis-server
-    ```
+- `cv_screening/` — Django project settings, WSGI, konfigurasi
+- `api/` — Views, serializers, URL routing untuk publik API
+- `core/` — Domain models, use-cases, dan infrastruktur (parser, LLM, persistence)
+- `evaluations/` — Celery tasks dan orchestration untuk evaluasi
+- `documents/` — Dokumen internal yang digunakan untuk RAG ingestion
+- `chroma_db/` — Penyimpanan lokal ChromaDB
+- `media/` — Upload file oleh pengguna
 
-2.  **Start the Celery worker:**
-    In the project root directory, run:
-    ```bash
-    celery -A cv_screening worker -l info --concurrency=4
-    ```
-    This command starts a Celery worker with 4 concurrent processes, allowing it to handle multiple evaluation tasks in parallel. Adjust the concurrency level based on your machine's resources.
+## Quickstart (Development)
 
-3.  **Start the Django development server:**
-    ```bash
-    python manage.py runserver
-    ```
+1) Clone repo dan buat virtualenv
 
-## API Usage
+```bash
+git clone <repository-url>
+cd cv-screening
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-1.  **Obtain a JWT token:**
-    First, you need to create a user to be able to authenticate.
-    ```bash
-    python manage.py createsuperuser
-    ```
-    Then, send a POST request to `/api/token/` with the user's credentials to get a JWT token pair.
-    ```http
-    POST /api/token/
-    Content-Type: application/json
+2) Buat file `.env` di root (contoh sudah tersedia). Pastikan variabel penting seperti `SECRET_KEY`, `REDIS_URL`, `GOOGLE_API_KEY` di-set.
 
-    {
-        "username": "your-username",
-        "password": "your-password"
-    }
-    ```
-    You will receive an `access` token and a `refresh` token.
+3) Migrasi dan buat superuser
 
-2.  **Upload documents:**
-    Send a `POST` request to `/api/upload/` with the CV and project report as `multipart/form-data`. Include the access token in the `Authorization` header.
-    ```http
-    POST /api/upload/
-    Authorization: Bearer <your-access-token>
-    Content-Type: multipart/form-data
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
 
-    --boundary
-    Content-Disposition: form-data; name="file"; filename="cv.pdf"
+4) Jalankan Redis, Celery, dan Django
 
-    <cv.pdf content>
-    --boundary
-    ```
-    You will receive a file ID for each uploaded document.
+Terminal 1: Redis
 
-3.  **Trigger evaluation:**
-    Send a `POST` request to `/api/evaluate/` with the job title and the file IDs.
-    ```http
-    POST /api/evaluate/
-    Authorization: Bearer <your-access-token>
-    Content-Type: application/json
+```bash
+redis-server
+```
 
-    {
-        "job_title": "Backend Developer",
-        "cv_id": "your-cv-id",
-        "project_report_id": "your-project-report-id"
-    }
-    ```
-    You will receive a job ID and a `queued` status.
+Terminal 2: Celery
 
-4.  **Retrieve results:**
-    Send a `GET` request to `/api/result/<job_id>/` to check the status and retrieve the results once the evaluation is complete.
-    ```http
-    GET /api/result/your-job-id/
-    Authorization: Bearer <your-access-token>
-    ```
+```bash
+celery -A cv_screening worker -l info --concurrency=4
+```
 
-## Design Choices
+Terminal 3: Django
 
--   **Django**: A robust and scalable framework for building the backend service.
--   **Django Rest Framework**: A powerful and flexible toolkit for building Web APIs in Django.
--   **Celery & Redis**: The standard choice for handling asynchronous tasks in Django, ensuring that the API remains responsive during long-running AI evaluations.
--   **ChromaDB**: A simple and easy-to-use vector store that can be run locally, making it ideal for this project.
--   **Langchain**: Simplifies the development of LLM-powered applications by providing tools for chaining, RAG, and more.
--   **Google Gemini**: A powerful and versatile LLM that is well-suited for the evaluation tasks in this project.
--   **Clean Architecture**: The project is structured to separate concerns, with the API, data models, and AI logic in different apps. This makes the codebase easier to maintain and extend.
--   **JWT Authentication**: Provides a secure and stateless way to authenticate API requests.
+```bash
+python manage.py runserver
+```
+
+5) Ingest dokumen referensi ke ChromaDB (opsional)
+
+```bash
+python manage.py ingest
+```
+
+## Environment & Konfigurasi penting
+
+- `.env`
+  - `SECRET_KEY` — kunci Django
+  - `REDIS_URL` — lokasi Redis (mis. `redis://127.0.0.1:6379/1`)
+  - `THROTTLE_UPLOAD`, `THROTTLE_EVALUATE`, dsb — rate limits per endpoint
+  - `JWT_ACCESS_TOKEN_LIFETIME`, `JWT_REFRESH_TOKEN_LIFETIME` — token lifetime
+
+## API Endpoints (Ringkas)
+
+- POST `/api/token/` — ambil JWT access & refresh
+- POST `/api/upload/` — upload file (CV / project report)
+- POST `/api/evaluate/` — trigger evaluasi (menghasilkan job ID)
+- GET `/api/result/<job_id>/` — ambil status & hasil evaluasi
+
+Contoh: upload file
+
+```bash
+curl -X POST http://localhost:8000/api/upload/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -F "file=@cv.pdf"
+```
+
+Contoh: trigger evaluasi
+
+```bash
+curl -X POST http://localhost:8000/api/evaluate/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"job_title":"Backend Developer","cv_id":"<cv-uuid>","project_report_id":"<proj-uuid>"}'
+```
+
+## Arsitektur & Alur Kerja
+
+1. User meng-upload CV dan/atau report melalui `/api/upload/`.
+2. User memanggil `/api/evaluate/` dengan `cv_id` dan `project_report_id`.
+3. Sistem membuat `EvaluationJob` (status `queued`) dan men-trigger Celery task `evaluate_documents`.
+4. Worker Celery membangun komposisi dependensi (repository, parser, LLM service, vector store).
+5. Use case `EvaluateCandidateUseCase`:
+   - parse teks CV & project
+   - retrieve konteks via ChromaDB
+   - panggil LLM untuk: evaluasi CV, evaluasi project, dan generate summary
+   - parsing hasil, isi fields pada `EvaluationJob` dan set status `completed` atau `failed`
+
+## Rate Limiting
+
+Rate limiting dikonfigurasi via DRF throttle classes dan Redis backend. Default limits disimpan di `.env`.
+
+Contoh default (di `.env`):
+- `THROTTLE_UPLOAD=5/hour`
+- `THROTTLE_EVALUATE=3/hour`
+- `THROTTLE_RESULT=20/hour`
+- `THROTTLE_TOKEN=5/min`
+
+Jika limit tercapai, server mengembalikan HTTP 429 dengan header `Retry-After`.
+
+## Pengujian & Debugging
+
+- Lint/syntax check:
+
+```bash
+python -m py_compile api/throttles.py api/views.py cv_screening/settings.py
+python manage.py check
+```
+
+- Test rate limiting: kirim banyak request cepat pada endpoint `/api/token/` dan perhatikan HTTP 429.
+
+## Deployment (singkat)
+
+- Gunakan PostgreSQL untuk production dan nonaktifkan `DEBUG`.
+- Gunakan Gunicorn + Nginx sebagai reverse proxy.
+- Gunakan Redis terkelola untuk reliability.
+- Pastikan `SECRET_KEY` aman, `ALLOWED_HOSTS` di-set, dan HTTPS diaktifkan.
+
+Contoh singkat menjalankan Gunicorn:
+
+```bash
+gunicorn --workers 4 --bind 0.0.0.0:8000 cv_screening.wsgi
+```
+
+## Kontribusi
+
+1. Fork repo
+2. Buat branch fitur: `git checkout -b feature/namafitur`
+3. Commit perubahan, push, dan buat PR
+
+## Troubleshooting
+
+- Jika Redis tidak berjalan: `redis-server` atau periksa `REDIS_URL`.
+- Jika Celery tidak memproses task: jalankan worker dengan logging dan periksa queue Redis.
+- Jika rate limit dianggap terlalu ketat: sesuaikan nilai di `.env`.
+
+## Lisensi
+
+Lisensi proyek ini tidak disertakan — tambahkan `LICENSE` jika diperlukan.
+
+---
+
+Jika Anda ingin, saya bisa juga membuat contoh Postman collection, atau menambahkan dokumentasi OpenAPI/Swagger.
