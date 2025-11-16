@@ -53,14 +53,18 @@ TEMPLATES = [
     },
 ]
 
+import dj_database_url
+
+# ... (keep existing code between)
+
 WSGI_APPLICATION = "cv_screening.wsgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    'default': dj_database_url.config(
+        default=f'postgresql://cv_screening_user:mysecretpassword@localhost:5432/cv_screening_db'
+    )
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

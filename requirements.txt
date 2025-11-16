@@ -16,3 +16,4 @@ chromadb-client>=0.4
 django-redis>=5.4
 drf-extensions>=0.7
 requests>=2.28
+dj-database-url>=0.5

@@ -41,8 +41,10 @@ class EvaluateCandidateUseCase:
             job.project_score = float(project_result.split("Score:")[1].split("Feedback:")[0].strip())
             job.project_feedback = project_result.split("Feedback:")[1].strip()
             job.overall_summary = summary_result.strip()
+            logger.info(f"Job {job.id}: Setting status to 'completed'. Current status: {job.status}")
             job.status = 'completed'
             self.evaluation_repository.update(job)
+            logger.info(f"Job {job.id}: Status updated to 'completed'.")
 
         except Exception as e:
             job.status = 'failed'

@@ -68,6 +68,9 @@ def evaluate_documents(job_id):
                 logger.info("Attempting fallback to HuggingFace for job %s", job_id)
                 from core.infra.llm.huggingface import HuggingFaceLLMService
 
+                # Re-initialize dependencies for fallback
+                pdf_parser = PdfParser()
+                vector_store = ChromaVectorStore()
                 fallback_llm = HuggingFaceLLMService()
                 
                 # Re-initialize use case with fallback LLM

@@ -50,4 +50,9 @@ class ResultView(generics.RetrieveAPIView):
     lookup_field = 'id'
     lookup_url_kwarg = 'job_id'
     permission_classes = [IsAuthenticated]
-    throttle_classes = [ResultThrottle]
+    # throttle_classes = [ResultThrottle] # Throttles are currently disabled
+
+    def get_object(self):
+        obj = super().get_object()
+        obj.refresh_from_db() # Force refresh from database
+        return obj

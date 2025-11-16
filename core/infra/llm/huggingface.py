@@ -10,7 +10,7 @@ class HuggingFaceLLMService(ILLMService):
             self.llm = HuggingFaceHub(repo_id=repo_id, task="text2text-generation", model_kwargs={"temperature": 0.5, "max_length": 512})
         except TypeError:
             # Fallback for versions with different signature
-            self.llm = HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.5, "max_length": 512})
+            self.llm = HuggingFaceHub(repo_id=repo_id, task='text2text-generation', model_kwargs={"temperature": 0.5, "max_length": 512})
 
     def evaluate_cv(self, cv_content: str, retriever):
         prompt = PromptTemplate(
