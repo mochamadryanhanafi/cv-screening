@@ -5,7 +5,12 @@ from core.application.interfaces import ILLMService
 
 class HuggingFaceLLMService(ILLMService):
     def __init__(self, repo_id="google/flan-t5-small"):
-        self.llm = HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.5, "max_length": 512})
+        # flan-t5-small is a text2text model; specify task to satisfy validation
+        try:
+            self.llm = HuggingFaceHub(repo_id=repo_id, task="text2text-generation", model_kwargs={"temperature": 0.5, "max_length": 512})
+        except TypeError:
+            # Fallback for versions with different signature
+            self.llm = HuggingFaceHub(repo_id=repo_id, model_kwargs={"temperature": 0.5, "max_length": 512})
 
     def evaluate_cv(self, cv_content: str, retriever):
         prompt = PromptTemplate(

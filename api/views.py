@@ -11,13 +11,13 @@ class UploadView(generics.CreateAPIView):
     queryset = UploadedFile.objects.all()
     serializer_class = UploadedFileSerializer
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UploadThrottle]
+    # throttle_classes = [UploadThrottle]
 
 
 class EvaluateView(generics.GenericAPIView):
     serializer_class = EvaluationRequestSerializer
     permission_classes = [IsAuthenticated]
-    throttle_classes = [EvaluateThrottle]
+    # throttle_classes = [EvaluateThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

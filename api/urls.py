@@ -8,7 +8,7 @@ from .throttles import TokenObtainThrottle
 
 
 class ThrottledTokenObtainPairView(TokenObtainPairView):
-    throttle_classes = [TokenObtainThrottle]
+    pass
 
 
 class ThrottledTokenRefreshView(TokenRefreshView):

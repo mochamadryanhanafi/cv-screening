@@ -1,0 +1,200 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-11-16T00:00:00.000Z",
+  "__export_source": "insomnia.desktop:v2022.7.0",
+  "resources": [
+    {
+      "_id": "wrk_cv_screening",
+      "_type": "workspace",
+      "name": "CV Screening API",
+      "description": "API testing collection for CV Screening backend",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_development",
+      "_type": "environment",
+      "parentId": "wrk_cv_screening",
+      "name": "Development",
+      "data": {
+        "base_url": "http://localhost:8001",
+        "api_prefix": "/api",
+        "username": "archyless",
+        "password": "anaa2008",
+        "access_token": "",
+        "refresh_token": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "api_prefix",
+          "username",
+          "password",
+          "access_token",
+          "refresh_token"
+        ]
+      },
+      "isPrivate": false,
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "fld_root",
+      "_type": "request_group",
+      "parentId": "wrk_cv_screening",
+      "name": "CV Screening API Tests",
+      "description": "Full testing suite for CV Screening backend"
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "fld_root",
+      "name": "Authentication",
+      "description": "JWT token endpoints"
+    },
+    {
+      "_id": "req_token_obtain",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get Token (Obtain JWT)",
+      "method": "POST",
+      "url": "{{ base_url }}{{ api_prefix }}/token/",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"{{ username }}\",\n  \"password\": \"{{ password }}\"\n}"
+      },
+      "description": "Obtain JWT access and refresh tokens.\n\n**Pre-requisite**: Create a user first using Django admin or `python manage.py createsuperuser`.\n\n**Response contains**:\n- `access`: Use this in Authorization header for other requests\n- `refresh`: Use to get a new access token when it expires",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "req_token_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ base_url }}{{ api_prefix }}/token/refresh/",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refresh\": \"{{ refresh_token }}\"\n}"
+      },
+      "description": "Get a new access token using the refresh token.",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "fld_files",
+      "_type": "request_group",
+      "parentId": "fld_root",
+      "name": "File Management",
+      "description": "Upload CV and project report files"
+    },
+    {
+      "_id": "req_upload_file",
+      "_type": "request",
+      "parentId": "fld_files",
+      "name": "Upload File (CV or Project Report)",
+      "method": "POST",
+      "url": "{{ base_url }}{{ api_prefix }}/upload/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ access_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "description": "PDF file to upload (CV or project report)"
+          }
+        ]
+      },
+      "description": "Upload a PDF file (CV or project report).\n\n**Response**:\n- `id`: UUID of the uploaded file (use in evaluate request)\n- `file`: Path to the uploaded file\n- `uploaded_at`: Timestamp\n\n**Rate limit**: 5 uploads per hour\n**Rate limited response**: HTTP 429 with `Retry-After` header",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "fld_evaluation",
+      "_type": "request_group",
+      "parentId": "fld_root",
+      "name": "Evaluation",
+      "description": "Trigger and retrieve candidate evaluations"
+    },
+    {
+      "_id": "req_evaluate",
+      "_type": "request",
+      "parentId": "fld_evaluation",
+      "name": "Trigger Evaluation",
+      "method": "POST",
+      "url": "{{ base_url }}{{ api_prefix }}/evaluate/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"job_title\": \"Backend Developer\",\n  \"cv_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"project_report_id\": \"660e8400-e29b-41d4-a716-446655440001\"\n}"
+      },
+      "description": "Trigger an evaluation job for a candidate.\n\n**Parameters**:\n- `job_title`: Position title for context\n- `cv_id`: UUID of uploaded CV file\n- `project_report_id`: UUID of uploaded project report\n\n**Response**:\n- `id`: Job ID (use in result endpoint)\n- `status`: 'queued'\n- `message`: Success message\n\n**Rate limit**: 3 evaluations per hour\n**Processing**: Asynchronous via Celery (check status via result endpoint)",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "req_result",
+      "_type": "request",
+      "parentId": "fld_evaluation",
+      "name": "Get Evaluation Result",
+      "method": "GET",
+      "url": "{{ base_url }}{{ api_prefix }}/result/550e8400-e29b-41d4-a716-446655440000/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ access_token }}"
+        }
+      ],
+      "description": "Retrieve evaluation result by job ID.\n\n**Response**:\n- `id`: Job ID\n- `status`: 'queued', 'processing', 'completed', or 'failed'\n- `job_title`: Position title\n- `cv_match_rate`: Match score (0.0-1.0) when completed\n- `cv_feedback`: Feedback on CV\n- `project_score`: Project evaluation score (1.0-5.0) when completed\n- `project_feedback`: Feedback on project\n- `overall_summary`: Final summary\n\n**Rate limit**: 20 checks per hour\n**Poll interval**: Suggested 5-10 seconds until status changes to 'completed' or 'failed'",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    },
+    {
+      "_id": "fld_examples",
+      "_type": "request_group",
+      "parentId": "fld_root",
+      "name": "Example Workflows",
+      "description": "Complete end-to-end test scenarios"
+    },
+    {
+      "_id": "req_example_full_flow",
+      "_type": "request",
+      "parentId": "fld_examples",
+      "name": "Full Workflow Example (Instructions)",
+      "method": "GET",
+      "url": "{{ base_url }}{{ api_prefix }}/",
+      "description": "**Complete end-to-end workflow**:\n\n1. **Get Token** (Authentication folder)\n   - Run \"Get Token (Obtain JWT)\" with your credentials\n   - Copy the `access` value from response\n   - Set it in Environment: `access_token = <copied-value>`\n\n2. **Upload Files** (File Management folder)\n   - Run \"Upload File\" twice (once for CV, once for project report)\n   - Save the `id` values from both responses\n\n3. **Trigger Evaluation** (Evaluation folder)\n   - Run \"Trigger Evaluation\"\n   - Replace `cv_id` and `project_report_id` with values from step 2\n   - Save the `id` value (job ID) from response\n\n4. **Check Results** (Evaluation folder)\n   - Run \"Get Evaluation Result\" repeatedly\n   - Replace job ID in URL with value from step 3\n   - Poll until `status` becomes 'completed' or 'failed'\n   - Check `cv_match_rate`, `project_score`, and `overall_summary`\n\n**Rate Limits**:\n- Login: 5/min\n- Upload: 5/hour\n- Evaluate: 3/hour\n- Check result: 20/hour\n\nIf rate limited (HTTP 429), wait for `Retry-After` header seconds.",
+      "created": 1700000000000,
+      "modified": 1700000000000
+    }
+  ]
+}

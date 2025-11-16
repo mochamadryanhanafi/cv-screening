@@ -1,4 +1,6 @@
 import os
+import re
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -119,9 +121,42 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'cv_screening.exceptions.custom_exception_handler',
 }
 
+def parse_duration(value, default=None):
+    """Parse a duration string like '15m', '1h', '30s', '1d' into timedelta.
+
+    If value is already a timedelta, return it. If it's numeric, treat as seconds.
+    """
+    if value is None:
+        value = default
+    if isinstance(value, timedelta):
+        return value
+    try:
+        # numeric strings are seconds
+        if isinstance(value, (int, float)) or re.fullmatch(r"\d+", str(value)):
+            return timedelta(seconds=int(value))
+        s = str(value).strip().lower()
+        m = re.fullmatch(r"(\d+)\s*(ms|s|sec|secs|m|min|h|hr|d)?", s)
+        if not m:
+            return default
+        qty = int(m.group(1))
+        unit = m.group(2) or 's'
+        if unit in ('ms',):
+            return timedelta(milliseconds=qty)
+        if unit in ('s', 'sec', 'secs'):
+            return timedelta(seconds=qty)
+        if unit in ('m', 'min'):
+            return timedelta(minutes=qty)
+        if unit in ('h', 'hr'):
+            return timedelta(hours=qty)
+        if unit in ('d',):
+            return timedelta(days=qty)
+    except Exception:
+        return default
+
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': os.getenv('JWT_ACCESS_TOKEN_LIFETIME', '15m'),
-    'REFRESH_TOKEN_LIFETIME': os.getenv('JWT_REFRESH_TOKEN_LIFETIME', '1d'),
+    'ACCESS_TOKEN_LIFETIME': parse_duration(os.getenv('JWT_ACCESS_TOKEN_LIFETIME', '15m')),
+    'REFRESH_TOKEN_LIFETIME': parse_duration(os.getenv('JWT_REFRESH_TOKEN_LIFETIME', '1d')),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
